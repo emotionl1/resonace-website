@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>레조넌스 정보 사이트</title>
+  <style>
+    /* 기본 설정 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Pretendard', sans-serif;
+    }
+
+    body {
+      background-color: #f5f5f5;
+      color: #333;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 사이드바 */
+    .sidebar {
+      width: 200px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px 0;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 0 15px 15px;
+      border-bottom: 1px solid #34495e;
+      margin-bottom: 15px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+    }
+
+    .sidebar-menu li a {
+      display: block;
+      padding: 10px 15px;
+      color: #ecf0f1;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .sidebar-menu li a:hover {
+      background-color: #34495e;
+    }
+
+    .sidebar-menu li.active a {
+      background-color: #34495e;
+      color: #4a8fe7;
+      border-left: 3px solid #4a8fe7;
+    }
+
+    .sidebar-menu li a i {
+      margin-right: 10px;
+    }
+
+    /* 메인 컨텐츠 */
+    .main-content {
+      flex-grow: 1;
+      padding: 20px;
+    }
+
+    /* 검색창 스타일 */
+    .search-container {
+      margin: 20px 0;
+      position: relative;
+    }
+
+    #item-search {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    #item-search:focus {
+      outline: none;
+      border-color: #4a8fe7;
+      box-shadow: 0 0 0 2px rgba(74, 143, 231, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+    }
+
+    /* 페이지 컨텐츠 */
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* 가격 테이블 */
+    .price-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-top: 10px;
+    }
+
+    .price-table th, .price-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    .price-table th {
+      background-color: #2c3e50;
+      color: white;
+      font-weight: 500;
+    }
+
+    .price-table tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+      display: none;
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+      }
+      .sidebar-menu {
+        display: flex;
+        overflow-x: auto;
+      }
+      .sidebar-menu li {
+        flex: 0 0 auto;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3>레조넌스 정보</h3>
+    </div>
+    <ul class="sidebar-menu">
+      <li class="active" data-page="price"><a><i class="fas fa-scroll"></i>유조이 패치 시간</a></li>
+      <li data-page="ranking"><a><i class="fas fa-trophy"></i>랭킹</a></li>
+      <li data-page="quest"><a><i class="fas fa-scroll"></i>퀘스트 정보</a></li>
+      <li data-page="calculator"><a><i class="fas fa-calculator"></i>강화 계산기</a></li>
+    </ul>
+  </div>
+
+  <!-- 메인 컨텐츠 -->
+  <div class="main-content">
+    <!-- 패치 정보 페이지 -->
+    <div id="price" class="page active">
+      <h1>유조이 패치 시간</h1>
+      
+      <!-- 검색창 추가 -->
+      <div class="search-container">
+        <input type="text" id="item-search" placeholder="이름으로 검색...">
+        <i class="fas fa-search search-icon"></i>
+      </div>
+      
+      <div class="no-results">검색 결과가 없습니다.</div>
+      
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>제목</th>
+            <th>기간</th>
+            <th>사이트</th>
+          </tr>
+        </thead>
+        <tbody id="price-table-body">
+          <tr>
+            <td>- 4월 9일 리소스 업데이트 안내 -</td>
+            <td>2025 - 04 / 09 15:25</td>
+            <td><a href="https://game.naver.com/lounge/RES/board/detail/5867287" class="price-link" target="_blank">사이트 이동</a></td>
+          </tr>
+          <tr>
+            <td>햇살이 비치는 곳🌞시즈루·여름 바캉스 등장!</td>
+            <td>2025 - 04 / 09 16:04 </td>
+            <td><a href="https://game.naver.com/lounge/RES/board/detail/5867476" class="price-link" target="_blank">사이트 이동</a></td>
+          </tr>
+          <tr>
+            <td>햇살이 비치는 곳🌞시즈루·여름 바캉스 PV</td>
+            <td>2025 - 04 / 09 16:17</td>
+            <td><a href="https://game.naver.com/lounge/RES/board/detail/5867547" class="price-link" target="_blank">사이트 이동</a></td>
+          </tr>
+          <tr>
+            <td style="color:#2ecc71">- 4월 9일 리소스 업데이트 완료 -</td>
+            <td>2025 - 04 / 09 22:31</td>
+          </tr>
+          <tr>
+            <td>- 4월 10일 리소스 업데이트 안내 -</td>
+            <td>2025 - 04 / 10 17:17</td>
+            <td><a href="https://game.naver.com/lounge/RES/board/detail/5872209" class="price-link" target="_blank">사이트 이동</a></td>
+          </tr>
+          <tr>
+            <td style="color:#2ecc71">- 4월 10일 리소스 업데이트 완료 -</td>
+            <td>2025 - 04 / 10 21:08</td>
+          </tr>
+          <tr>
+            <td>[금토일, 게임과 함께할 시간] 원스토어 프로모션 안내</td>
+            <td>2025 - 04 / 11 01:12</td>
+            <td><a href="https://game.naver.com/lounge/RES/board/detail/5874441" class="price-link" target="_blank">사이트 이동</a></td>
+          </tr>
+          <tr>
+            <td><본격사studio>X<레조넌스> 영상 공개 안내 </td>
+            <td>2025 - 04 / 11 11:44</td>
+            <td><a href="https://game.naver.com/lounge/RES/board/detail/5875542" class="price-link" target="_blank">사이트 이동</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+     <!-- 랭킹 페이지 -->
+     <div id="ranking" class="page">
+        <h1>캐릭터 랭킹</h1>
+        <table class="price-table">
+          <thead>
+            <tr>
+              <th>순위</th>
+              <th>캐릭터명</th>
+              <th>레벨</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>무적검신</td>
+              <td>85</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>신궁의여왕</td>
+              <td>84</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+  
+      <!-- 퀘스트 페이지 -->
+      <div id="quest" class="page">
+        <h1>퀘스트 정보</h1>
+        <table class="price-table">
+          <thead>
+            <tr>
+              <th>퀘스트명</th>
+              <th>보상</th>
+              <th>난이도</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>검은 기사의 유산</td>
+              <td>고대의 결정</td>
+              <td>★★★★</td>
+            </tr>
+            <tr>
+              <td>드래곤 슬레이어</td>
+              <td>드래곤의 심장</td>
+              <td>★★★★★</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="calculator" class="page">
+        <h1>강화 계산기</h1>
+        <div class="calculator-container">
+          <div class="input-section">
+            <!-- 아이템 등급 선택 -->
+            <div class="input-group">
+              <label for="item-grade">아이템 등급:</label>
+              <select id="item-grade" class="enhance-select">
+                <option value="UR">UR (최상급)</option>
+                <option value="SSR">SSR (특급)</option>
+                <option value="SR" selected>SR (고급)</option>
+                <option value="R">R (일반)</option>
+              </select>
+            </div>
+            
+            <!-- 아이템 유형 선택 -->
+            <div class="input-group">
+              <label for="item-type">아이템 유형:</label>
+              <select id="item-type" class="enhance-select">
+                <option value="weapon">무기/방어구</option>
+                <option value="accessory">악세서리</option>
+              </select>
+            </div>
+            
+            <!-- 현재 강화 단계 -->
+            <div class="input-group">
+              <label for="current-level">현재 강화 단계:</label>
+              <input 
+                type="number" 
+                id="current-level" 
+                class="number-input" 
+                value="1" 
+                min="1" 
+                max="69"
+              >
+            </div>
+            
+            <!-- 목표 강화 단계 -->
+            <div class="input-group">
+              <label for="target-level">목표 강화 단계:</label>
+              <input 
+                type="number" 
+                id="target-level" 
+                class="number-input" 
+                value="2" 
+                min="2" 
+                max="70"
+              >
+            </div>
+          </div>
+          
+          <!-- 계산 버튼 -->
+          <button id="calculate-btn" class="calculate-button">계산하기</button>
+          
+          <!-- 결과 표시 영역 -->
+          <div id="result-section" class="result-section" style="display:none;">
+            <h3>계산 결과</h3>
+            <div class="result-grid">
+              <div class="result-item">
+                <span>필요 경험치:</span>
+                <span id="exp-result">0</span>
+              </div>
+              <div class="result-item">
+                <span>필요 골드:</span>
+                <span id="gold-result">0</span>
+              </div>
+              <div class="result-item full-width">
+                <span>필요 재료:</span>
+                <div id="material-result" class="materials-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        /* 동일한 스타일 유지 */
+        .calculator-container {
+          background: white;
+          padding: 25px;
+          border-radius: 10px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          max-width: 600px;
+          margin: 0 auto;
+        }
+        
+        .input-group {
+          margin-bottom: 15px;
+          display: flex;
+          align-items: center;
+        }
+        
+        .input-group label {
+          width: 150px;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+        
+        .number-input, .enhance-select {
+          width: 180px;
+          height: 35px;
+          padding: 5px 10px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 14px;
+        }
+        
+        /* 등급별 색상 */
+        #item-grade option[value="UR"] { color: #ff00ff; font-weight: bold; }
+        #item-grade option[value="SSR"] { color: #ff9900; font-weight: bold; }
+        #item-grade option[value="SR"] { color: #3399ff; }
+        #item-grade option[value="R"] { color: #33cc33; }
+        
+        .calculate-button {
+          background-color: #4CAF50;
+          color: white;
+          border: none;
+          padding: 12px;
+          width: 100%;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 16px;
+          margin-top: 15px;
+          transition: background-color 0.3s;
+        }
+        
+        .calculate-button:hover {
+          background-color: #45a049;
+        }
+        
+        .result-section {
+          margin-top: 20px;
+          padding: 20px;
+          background-color: #f9f9f9;
+          border-radius: 5px;
+        }
+        
+        .result-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+        }
+        
+        .result-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .full-width {
+          grid-column: span 2;
+        }
+        
+        .materials-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 5px;
+        }
+        
+        .material-item {
+          background-color: #e3f2fd;
+          padding: 5px 10px;
+          border-radius: 4px;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+        }
+        
+        .material-icon {
+          width: 20px;
+          height: 20px;
+          margin-right: 5px;
+          background-color: #bbdefb;
+          border-radius: 50%;
+        }
+      </style>
+      
+      <script>
+        // 등급별 경험치 데이터 (레벨 1부터 시작하도록 인덱스 조정)
+        const expData = {
+          "UR": {
+            "weapon": [100,200,300,400,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3400,3800,4200,4600,5000,5400,5800,6200,6600,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000,17000,19000,21000,23000,25000,27000,29000,31000,33000,35000,37000,41000,45000,49000,53000,57000,61000,65000,69000,73000,77000,81000,85000,89000,93000,97000,101000,105000,109000,113000],
+            "accessory": [150,300,450,600,750,900,1050,1200,1350,1500,1800,2100,2400,2700,3000,3300,3600,3900,4200,4500,5100,5700,6300,6900,7500,8100,8700,9300,9900,10500,12000,13500,15000,16500,18000,19500,21000,22500,24000,25500,28500,31500,34500,37500,40500,43500,46500,49500,52500,55500,61500,67500,73500,79500,85500,91500,97500,103500,109500,115500,121500,127500,133500,139500,145500,151500,157500,163500,169500]
+          },
+          "SSR": {
+            "weapon": [65,110,165,220,275,330,385,440,495,550,660,770,880,990,1100,1210,1320,1430,1540,1650,1870,2090,2310,2530,2750,2970,3190,3410,3630,3850,4400,4950,5500,6050,6600,7150,7700,8250,8800,9350,10450,11550,12650,13750,14850,15950,17050,18150,19250,20350,22550,24750,26950,29150,31350,33550,35750,37950,40150,42350,44550,46750,48950,51150,53350,55550,57750,59950,62150],
+            "accessory": [97,165,247,330,412,495,577,660,742,825,990,1155,1320,1485,1650,1815,1980,2145,2310,2475,2805,3135,3465,3795,4125,4455,4785,5115,5445,5775,6600,7425,8250,9075,9900,10725,11550,12375,13200,14025,15675,17325,18975,20625,22275,23925,25575,27225,28875,30525,33825,37125,40425,43725,47025,50325,53625,56925,60225,63525,66825,70125,73425,76725,80025,83325,86625,89925,93225]
+          },
+          "SR": {
+            "weapon": [40,70,105,140,175,210,245,280,315,350,420,490,560,630,700,770,840,910,980,1050,1190,1330,1470,1610,1750,1890,2030,2170,2310,2450,2800,3150,3500,3850,4200,4550,4900,5250,5600,5950,6650,7350,8050,8750,9450,10150,10850,11550,12250,12950,14350,15750,17150,18550,19950,21350,22750,24150,25550,26950,28350,29750,31150,32550,33950,35350,36750,38150,39550],
+            "accessory": [60,105,157,210,262,315,367,420,472,525,630,735,840,945,1050,1155,1260,1365,1470,1575,1785,1995,2205,2415,2625,2835,3045,3255,3465,3675,4200,4725,5250,5775,6300,6825,7350,7875,8400,8925,9975,11025,12075,13125,14175,15225,16275,17325,18375,19425,21525,23625,25725,27825,29925,32025,34125,36225,38325,40425,42525,44625,46725,48825,50925,53025,55125,57225,59325]
+          },
+          "R": {
+            "weapon": [25,50,75,100,125,150,175,200,225,250,300,350,400,450,500,550,600,650,700,750,850,950,1050,1150,1250,1350,1450,1550,1650,1750,2000,2250,2500,2750,3000,3250,3500,3750,4000,4250,4750,5250,5750,6250,6750,7250,7750,8250,8750,9250,10250,11250,12250,13250,14250,15250,16250,17250,18250,19250,20250,21250,22250,23250,24250,25250,26250,27250,28250],
+            "accessory": [37,75,112,150,187,225,262,300,337,375,450,525,600,675,750,825,900,975,1050,11250,12750,14250,15750,17250,18750,20250,21750,23250,24750,26250,30000,33750,37500,41250,45000,48750,52500,56250,60000,63750,71250,78750,86250,93750,101250,108750,116250,123750,131250,138750,153750,168750,183750,198750,213750,228750,243750,258750,273750,288750,303750,318750,333750,348750,363750,378750,393750,408750,423750]
+          }
+        };
+      
+        // 등급별 골드 데이터 (레벨 1부터 시작하도록 인덱스 조정)
+        const goldData = {
+          "UR": {
+            "weapon": [1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,12000,14000,16000,18000,20000,22000,24000,26000,28000,30000,34000,38000,42000,46000,50000,54000,58000,62000,66000,70000,80000,90000,100000,110000,120000,130000,140000,150000,160000,170000,190000,210000,230000,250000,270000,290000,310000,330000,350000,370000,410000,450000,490000,530000,570000,610000,650000,690000,730000,770000,810000,850000,890000,930000,970000,1010000,1050000,1090000,1130000],
+            "accessory": [1500,3000,4500,6000,7500,9000,10500,12000,13500,15000,18000,21000,24000,27000,30000,33000,36000,39000,42000,45000,51000,57000,63000,69000,75000,81000,87000,93000,99000,105000,120000,135000,150000,165000,180000,195000,210000,225000,240000,255000,285000,315000,345000,375000,405000,435000,465000,495000,525000,555000,615000,675000,735000,795000,855000,915000,975000,1035000,1095000,1155000,1215000,1275000,1335000,1395000,1455000,1515000,1575000,1635000,1695000]
+          },
+          "SSR": {
+            "weapon": [650,1100,1650,2200,2750,3300,3850,4400,4950,5500,6600,7700,8800,9900,11000,12100,13200,14300,15400,16500,18700,20900,23100,25300,27500,29700,31900,34100,36300,38500,44000,49500,55000,60500,66000,71500,77000,82500,88000,93500,104500,115500,126500,137500,148500,159500,170500,181500,192500,203500,225500,247500,269500,291500,313500,335500,357500,379500,401500,423500,445500,467500,489500,511500,533500,555500,577500,599500,621500],
+            "accessory": [975,1650,2475,3300,4125,4950,5775,6600,7425,8250,9900,11550,13200,14850,16500,18150,19800,21450,23100,24750,28050,31350,34650,37950,41250,44550,47850,51150,54450,57750,66000,74250,82500,90750,99000,107250,115500,123750,132000,140250,156750,173250,189750,206250,222750,239250,255750,272250,288750,305250,338250,371250,404250,437250,470250,503250,536250,569250,602250,635250,668250,701250,734250,767250,800250,833250,866250,899250,932250]
+          },
+          "SR": {
+            "weapon": [400,700,1050,1400,1750,2100,2450,2800,3150,3500,4200,4900,5600,6300,7000,7700,8400,9100,9800,10500,11900,13300,14700,16100,17500,18900,20300,21700,23100,24500,28000,31500,35000,38500,42000,45500,49000,52500,56000,59500,66500,73500,80500,87500,94500,101500,108500,115500,122500,129500,143500,157500,171500,185500,199500,213500,227500,241500,255500,269500,283500,297500,311500,325500,339500,353500,367500,381500,395500],
+            "accessory": [600,1050,1575,2100,2625,3150,3675,4200,4725,5250,6300,7350,8400,9450,10500,11550,12600,13650,14700,15750,17850,19950,22050,24150,26250,28350,30450,32550,34650,36750,42000,47250,52500,57750,63000,68250,73500,78750,84000,89250,99750,110250,120750,131250,141750,152250,162750,173250,183750,194250,215250,236250,257250,278250,299250,320250,341250,362250,383250,404250,425250,446250,467250,488250,509250,530250,551250,572250,593250]
+          },
+          "R": {
+            "weapon": [250,500,750,1000,1250,1500,1750,2000,2250,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8500,9500,10500,11500,12500,13500,14500,15500,16500,17500,20000,22500,25000,27500,30000,32500,35000,37500,40000,42500,47500,52500,57500,62500,67500,72500,77500,82500,87500,92500,102500,112500,122500,132500,142500,152500,162500,172500,182500,192500,202500,212500,222500,232500,242500,252500,262500,272500,282500],
+            "accessory": [375,750,1125,1500,1875,2250,2625,3000,3375,3750,4500,5250,6000,6750,7500,8250,9000,9750,10500,11250,12750,14250,15750,17250,18750,20250,21750,23250,24750,26250,30000,33750,37500,41250,45000,48750,52500,56250,60000,63750,71250,78750,86250,93750,101250,108750,116250,123750,131250,138750,153750,168750,183750,198750,213750,228750,243750,258750,273750,288750,303750,318750,333750,348750,363750,378750,393750,408750,423750]
+          }
+        };
+      
+        // 강화 재료 데이터 (성운상 물질)
+        const materials = [
+          { name: "성운상 물질(8Ti)", value: 4000, color: "#9c27b0" },
+          { name: "성운상 물질(4Ti)", value: 2000, color: "#3f51b5" },
+          { name: "성운상 물질(2Ti)", value: 1000, color: "#2196f3" },
+          { name: "성운상 물질(1Ti)", value: 500, color: "#4caf50" }
+        ];
+      
+        // 입력값 유효성 검사
+        function validateLevels() {
+          const current = parseInt(document.getElementById('current-level').value) || 1;
+          const target = parseInt(document.getElementById('target-level').value) || 2;
+          
+          // 범위 강제 적용
+          const validatedCurrent = Math.max(1, Math.min(69, current));
+          const validatedTarget = Math.max(2, Math.min(70, target));
+          
+          document.getElementById('current-level').value = validatedCurrent;
+          document.getElementById('target-level').value = Math.max(validatedTarget, validatedCurrent + 1);
+        }
+      
+        // 재료 계산 함수 (최적화 알고리즘)
+        function calculateMaterials(totalExp) {
+          let remainingExp = totalExp;
+          const results = [];
+          
+          // 큰 재료부터 계산
+          for (const material of materials) {
+            const count = Math.floor(remainingExp / material.value);
+            if (count > 0) {
+              results.push({
+                name: material.name,
+                count: count,
+                color: material.color,
+                exp: material.value * count
+              });
+              remainingExp %= material.value;
+            }
+          }
+          
+          // 남은 경험치는 가장 작은 재료로 처리
+          if (remainingExp > 0) {
+            const smallestMaterial = materials[materials.length - 1];
+            const existing = results.find(r => r.name === smallestMaterial.name);
+            
+            if (existing) {
+              existing.count++;
+              existing.exp += smallestMaterial.value;
+            } else {
+              results.push({
+                name: smallestMaterial.name,
+                count: 1,
+                color: smallestMaterial.color,
+                exp: smallestMaterial.value
+              });
+            }
+          }
+          
+          return results;
+        }
+      
+        // 계산 버튼 클릭 이벤트
+        document.getElementById('calculate-btn').addEventListener('click', function() {
+          validateLevels();
+          
+          const currentLevel = parseInt(document.getElementById('current-level').value);
+          const targetLevel = parseInt(document.getElementById('target-level').value);
+          const itemGrade = document.getElementById('item-grade').value;
+          const itemType = document.getElementById('item-type').value;
+          
+          // 유효성 검사
+          if (currentLevel >= targetLevel) {
+            alert("목표 강화 단계는 현재 단계보다 높아야 합니다.");
+            return;
+          }
+          
+          // 총 필요 경험치/골드 계산 (레벨 1부터 시작하도록 인덱스 조정)
+          let totalExp = 0;
+          let totalGold = 0;
+          
+          for (let i = currentLevel - 1; i < targetLevel - 1; i++) {
+            totalExp += expData[itemGrade][itemType][i];
+            totalGold += goldData[itemGrade][itemType][i];
+          }
+          
+          // 재료 계산
+          const materialResults = calculateMaterials(totalExp);
+          
+          // 결과 표시
+          document.getElementById('exp-result').textContent = totalExp.toLocaleString();
+          document.getElementById('gold-result').textContent = totalGold.toLocaleString();
+          
+          const materialContainer = document.getElementById('material-result');
+          materialContainer.innerHTML = '';
+          
+          materialResults.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'material-item';
+            
+            const icon = document.createElement('div');
+            icon.className = 'material-icon';
+            icon.style.backgroundColor = item.color;
+            
+            const text = document.createElement('span');
+            text.textContent = `${item.name} × ${item.count} (${item.exp.toLocaleString()} EXP)`;
+            
+            div.appendChild(icon);
+            div.appendChild(text);
+            materialContainer.appendChild(div);
+          });
+          
+          document.getElementById('result-section').style.display = 'block';
+        });
+      
+        // 입력값 변경 시 유효성 검사
+        document.getElementById('current-level').addEventListener('change', validateLevels);
+        document.getElementById('target-level').addEventListener('change', validateLevels);
+      </script>
+
+
+<!-- CSS 스타일 -->
+<style>
+  .calculator-container {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .input-group {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .input-group label {
+    width: 120px;
+    font-weight: bold;
+  }
+  
+  
+  /* 결과 영역 스타일 */
+  .result-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+  }
+  
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+  }
+</style>
+
+<!-- JavaScript 기능 -->
+<script>
+  // 숫자 증가/감소 버튼 동작
+  document.querySelectorAll('.increase-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const input = e.target.closest('.number-control').querySelector('.number-input');
+      input.stepUp();
+      validateInputs();
+    });
+  });
+  
+  document.querySelectorAll('.decrease-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const input = e.target.closest('.number-control').querySelector('.number-input');
+      input.stepDown();
+      validateInputs();
+    });
+  });
+  
+  // 직접 입력 시 유효성 검사
+  document.querySelectorAll('.number-input').forEach(input => {
+    input.addEventListener('input', validateInputs);
+  });
+  
+  // 현재 단계 < 목표 단계 검사
+  function validateInputs() {
+    const current = parseInt(document.getElementById('current-level').value);
+    const target = parseInt(document.getElementById('target-level').value);
+    
+    if (current >= target) {
+      document.getElementById('target-level').value = current + 1;
+    }
+  }
+  
+  // 계산 로직
+  document.getElementById('calculate-btn').addEventListener('click', function() {
+    const current = parseInt(document.getElementById('current-level').value);
+    const target = parseInt(document.getElementById('target-level').value);
+    const itemType = document.getElementById('item-type').value;
+    
+    // 임시 계산식 (실제 게임 데이터로 교체 필요)
+    const materials = (target - current) * 5;
+    const cost = (target - current) * 1000;
+    const successRate = 80 - (target * 3);
+    
+    // 결과 표시
+    document.getElementById('material-result').textContent = `${materials}개`;
+    document.getElementById('cost-result').textContent = `${cost.toLocaleString()}골드`;
+    document.getElementById('success-rate').textContent = `${Math.max(5, successRate)}%`;
+    
+    // 결과 영역 보이기
+    document.getElementById('result-section').style.display = 'block';
+  });
+</script>
+  
+
+  <script>
+    // 페이지 전환 기능
+    document.querySelectorAll('.sidebar-menu li').forEach(menuItem => {
+      menuItem.addEventListener('click', function() {
+        document.querySelectorAll('.sidebar-menu li').forEach(item => {
+          item.classList.remove('active');
+        });
+        document.querySelectorAll('.page').forEach(page => {
+          page.classList.remove('active');
+        });
+        this.classList.add('active');
+        const pageId = this.getAttribute('data-page');
+        document.getElementById(pageId).classList.add('active');
+      });
+    });
+
+    // 검색 기능 구현
+    const searchInput = document.getElementById('item-search');
+    const priceTableBody = document.getElementById('price-table-body');
+    const tableRows = priceTableBody.querySelectorAll('tr');
+    const noResultsMessage = document.querySelector('.no-results');
+
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      let hasResults = false;
+
+      tableRows.forEach(row => {
+        const itemName = row.cells[0].textContent.toLowerCase();
+        if (itemName.includes(searchTerm)) {
+          row.style.display = '';
+          hasResults = true;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      // 검색 결과 없을 때 메시지 표시
+      noResultsMessage.style.display = hasResults ? 'none' : 'block';
+    });
+  </script>
+</body>
+</html>
