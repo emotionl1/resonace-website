@@ -1103,6 +1103,133 @@ async function loadFullFile() {
 }
 </script>
 
+<script>
+  // 기존 loadData() 함수 대체
+async function loadChunkedData() {
+  try {
+    // 1. 청크 목록 가져오기
+    const manifest = await fetch('/data_chunks/manifest.json').then(r => r.json());
+    
+    // 2. 청크 순차 로딩
+    for (const chunkFile of manifest.files) {
+      const chunk = await fetch(`/data_chunks/${chunkFile}`).then(r => r.json());
+      characters = [...characters, ...chunk.characters];
+      
+      // 3. 점진적 렌더링
+      renderPartialList(chunk.characters);
+      await new Promise(r => setTimeout(r, 100)); // UI 블로킹 방지
+    }
+    
+    // 4. 전체 렌더링
+    renderCharacterList();
+    
+  } catch (error) {
+    console.error('청크 로딩 실패:', error);
+    // 폴백: 전체 파일 로드 시도
+    await loadFullData();
+  }
+}
+
+// manifest.json 예시 (public/data_chunks/manifest.json)
+{
+  "files";  [
+    "chunk_0.json",
+    "chunk_1.json",
+    // ...
+  ]
+}
+</script>
+
+
+<script>
+  // IndexedDB 초기화
+let db;
+
+async function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('CharacterDB', 1);
+    
+    request.onupgradeneeded = (event) => {
+      db = event.target.result;
+      if (!db.objectStoreNames.contains('characters')) {
+        db.createObjectStore('characters', { keyPath: 'id' });
+      }
+    };
+    
+    request.onsuccess = (event) => {
+      db = event.target.result;
+      resolve(db);
+    };
+    
+    request.onerror = (event) => {
+      reject('IndexedDB 오류: ' + event.target.error);
+    };
+  });
+}
+
+// 캐시와 네트워크 병합 로딩
+async function loadWithCache() {
+  try {
+    // 1. DB 초기화
+    await initDB();
+    
+    // 2. 캐시에서 로드
+    const cached = await getAllFromDB();
+    if (cached.length > 0) {
+      characters = cached;
+      renderCharacterList();
+    }
+    
+    // 3. 네트워크 요청
+    const networkData = await fetchNetworkData();
+    
+    // 4. 캐시 업데이트
+    await updateCache(networkData);
+    
+    // 5. 새로운 데이터 렌더링
+    characters = networkData;
+    renderCharacterList();
+    
+  } catch (error) {
+    console.error('캐시 로딩 실패:', error);
+    characters = characters.length ? characters : [];
+  }
+}
+
+// Helper 함수들
+async function getAllFromDB() {
+  return new Promise((resolve) => {
+    const tx = db.transaction('characters', 'readonly');
+    const store = tx.objectStore('characters');
+    const request = store.getAll();
+    
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => resolve([]);
+  });
+}
+
+async function updateCache(data) {
+  return new Promise((resolve) => {
+    const tx = db.transaction('characters', 'readwrite');
+    const store = tx.objectStore('characters');
+    
+    data.forEach(char => {
+      store.put(char);
+    });
+    
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  });
+}
+
+// 기존 loadData() 호출 부분을 이렇게 변경
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadWithCache();  // 캐시 사용 버전으로 대체
+  initLazyLoad();         // 지연 로딩 초기화
+});
+</script>
+
+
 
 </body>
 </html>
