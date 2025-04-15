@@ -1044,5 +1044,65 @@ function escapeHtml(unsafe) {
 document.addEventListener('DOMContentLoaded', loadData);
 </script>
 
+
+<script>
+  // 향상된 분할 로딩 구현
+async function loadData() {
+    const CHUNK_SIZE = 50;
+    let offset = 0;
+    let fullData = null;
+
+    try {
+        // 1. 파일 크기 먼저 확인
+        const sizeResponse = await fetch('character_data.json', {
+            method: 'HEAD'
+        });
+        const totalSize = parseInt(sizeResponse.headers.get('content-length'));
+
+        // 2. 청크 단위로 처리
+        while (true) {
+            const rangeEnd = Math.min(offset + CHUNK_SIZE * 5000, totalSize);
+            const rangeHeader = `bytes=${offset}-${rangeEnd}`;
+            
+            const response = await fetch('character_data.json', {
+                headers: { 'Range': rangeHeader }
+            });
+
+            const chunkText = await response.text();
+            const chunkData = JSON.parse(chunkText);
+
+            if (!fullData) {
+                fullData = chunkData;
+            } else {
+                fullData.characters = [...fullData.characters, ...chunkData.characters];
+            }
+
+            offset = rangeEnd + 1;
+            if (offset >= totalSize) break;
+
+            // UI 업데이트
+            renderPartialList(fullData.characters);
+            await new Promise(r => setTimeout(r, 300));
+        }
+
+        characters = fullData.characters;
+        renderCharacterList();
+
+    } catch (error) {
+        console.error('Chunked loading failed:', error);
+        // 전체 파일로 폴백 시도
+        await loadFullFile();
+    }
+}
+
+async function loadFullFile() {
+    const response = await fetch('character_data.json');
+    const data = await response.json();
+    characters = data.characters;
+    renderCharacterList();
+}
+</script>
+
+
 </body>
 </html>
