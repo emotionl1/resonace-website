@@ -1,19 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)", 
-      "dest": "/index.html"
-    }
-  ]
-}
-{
+  "public": true,
   "headers": [
     {
       "source": "/(.*).json",
@@ -21,8 +8,15 @@
         {
           "key": "Content-Type",
           "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
         }
       ]
     }
-  ]
+  ],
+  "limits": {
+    "bodySize": "10mb"
+  }
 }
