@@ -575,10 +575,12 @@
 
     <script>
         // 캐릭터 데이터 배열
-        let characters = [];
-        
-        // 데이터 불러오기
-        function loadData() {
+        (function() {
+    // 캐릭터 데이터 배열
+    let characters = [];
+    
+    // 데이터 불러오기 함수
+    async function loadData() {
             const saved = localStorage.getItem('characterData');
             if (saved) {
                 try {
@@ -592,6 +594,9 @@
                 showError('저장된 데이터가 없습니다');
             }
         }
+          // 페이지 로드 시 데이터 불러오기
+    document.addEventListener('DOMContentLoaded', loadData);
+})();
         
         // 오류 표시
         function showError(message) {
@@ -701,6 +706,39 @@
         // 페이지 로드 시 데이터 불러오기
         document.addEventListener('DOMContentLoaded', loadData);
     </script>
+
+<!-- HTML 파일 JSON 불러오기 -->
+<head>
+  <div id="character" class="page">
+    <h1>캐릭터 도감 (읽기 전용)</h1>
+    <div class="character-container">
+      <div class="input-section">   
+    <style>
+        /* CSS 스타일은 기존과 동일하게 유지 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f5f5f5; color: #333; }
+        /* ... 기타 스타일 ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 캐릭터 도감</h1>
+        <div id="character-list">
+            <p class="loading">데이터를 불러오는 중...</p>
+        </div>
+        
+        <!-- 상세 보기 화면 (기존과 동일) -->
+        <div id="character-detail" style="display:none;">
+            <!-- ... -->
+        </div>
+    </div>
+
+    <script>
+        // 여기에 아래 JavaScript 코드를 추가
+    </script>
+</body>
+</html>
+    
 </body>
 </html>
 
@@ -785,7 +823,9 @@
   }
 </style>
 
+
 <!-- JavaScript 기능 -->
+ 
 <script>
   // 숫자 증가/감소 버튼 동작
   document.querySelectorAll('.increase-btn').forEach(btn => {
@@ -881,5 +921,128 @@
       noResultsMessage.style.display = hasResults ? 'none' : 'block';
     });
   </script>
+
+
+<script>
+  // 캐릭터 데이터 배열
+let characters = [];
+
+// 데이터 불러오기 함수
+async function loadData() {
+    try {
+        // 1. JSON 파일 불러오기
+        const response = await fetch('character_data.json');
+        
+        if (!response.ok) {
+            throw new Error(`데이터 불러오기 실패: ${response.status}`);
+        }
+        
+        // 2. JSON 파싱
+        const data = await response.json();
+        
+        // 3. 데이터 유효성 검사
+        if (!data.characters || !Array.isArray(data.characters)) {
+            throw new Error('잘못된 데이터 형식');
+        }
+        
+        // 4. 데이터 저장
+        characters = data.characters;
+        
+        // 5. 캐릭터 목록 렌더링
+        renderCharacterList();
+        
+    } catch (error) {
+        console.error('에러 발생:', error);
+        showError(`데이터를 불러올 수 없습니다: ${error.message}`);
+    }
+}
+
+// 오류 표시 함수
+function showError(message) {
+    const listContainer = document.getElementById('character-list');
+    listContainer.innerHTML = `
+        <div class="error-message">
+            <p>⚠️ ${message}</p>
+            <p>character_data.json 파일이 같은 폴더에 있는지 확인해주세요.</p>
+        </div>
+    `;
+}
+
+// 캐릭터 목록 렌더링 함수
+function renderCharacterList() {
+    const container = document.getElementById('character-list');
+    
+    if (characters.length === 0) {
+        container.innerHTML = '<p class="no-data">등록된 캐릭터가 없습니다</p>';
+        return;
+    }
+    
+    // 캐릭터 카드 생성
+    container.innerHTML = characters.map(character => `
+        <div class="character-card" onclick="showCharacterDetail('${character.id}')">
+            ${character.image ? 
+                `<img src="${character.image}" class="card-image" alt="${character.name}">` : 
+                '<div class="no-image">이미지 없음</div>'
+            }
+            <div class="card-body">
+                <h3 class="card-title">${escapeHtml(character.name)}</h3>
+                <div class="card-meta">
+                    ${escapeHtml(getRaceName(character.race))} • 
+                    ${escapeHtml(getGenderName(character.gender))}
+                </div>
+                <p class="card-desc">${escapeHtml(character.traits?.[0] || '등록된 정보 없음')}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 상세 정보 표시 함수
+function showCharacterDetail(id) {
+    const character = characters.find(c => c.id === id);
+    if (!character) return;
+
+    // 상세 정보 채우기
+    document.getElementById('detail-name').textContent = character.name || '이름 없음';
+    document.getElementById('detail-race').textContent = getRaceName(character.race);
+    document.getElementById('detail-gender').textContent = getGenderName(character.gender);
+    
+    // 이미지 표시
+    const imgElement = document.getElementById('detail-image');
+    if (character.image) {
+        imgElement.src = character.image;
+        imgElement.style.display = 'block';
+    } else {
+        imgElement.style.display = 'none';
+    }
+    
+    // 화면 전환
+    document.getElementById('character-list').style.display = 'none';
+    document.getElementById('character-detail').style.display = 'block';
+}
+
+// 유틸리티 함수들
+function getRaceName(race) {
+    const races = { human: '인간', machine: '기계', nonhuman: '인외' };
+    return races[race] || race || '미정';
+}
+
+function getGenderName(gender) {
+    const genders = { male: '남성', female: '여성', other: '기타' };
+    return genders[gender] || gender || '미정';
+}
+
+function escapeHtml(unsafe) {
+    return unsafe?.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;") || '';
+}
+
+// 페이지 로드 시 데이터 불러오기
+document.addEventListener('DOMContentLoaded', loadData);
+</script>
+
 </body>
 </html>
