@@ -744,24 +744,24 @@
 
 <!-- HTML에 추가 -->
 <div id="loading-indicator" style="display: none; text-align: center; padding: 20px;">
-  <div class="spinner"></div>
-  <p>캐릭터 데이터를 불러오는 중...</p>
+    <div class="spinner"></div>
+    <p>캐릭터 데이터를 불러오는 중...</p>
 </div>
 
 <style>
-  .spinner {
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border-left-color: #09f;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
-  }
-  @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-  }
+    .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border-left-color: #09f;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 </style>
 
       
@@ -1117,73 +1117,6 @@ document.addEventListener('DOMContentLoaded', loadData);
 }
 </script>
 
-<script>
-  // 로딩 상태 제어 함수
-function setLoading(show) {
-    document.getElementById('loading-indicator').style.display = 
-        show ? 'block' : 'none';
-    document.getElementById('character-list').style.visibility = 
-        show ? 'hidden' : 'visible';
-}
-
-// loadData 함수 수정
-async function loadData() {
-    setLoading(true);
-    try {
-        const response = await fetch('character_data.json');
-        // ... 나머지 코드 ...
-    } finally {
-        setLoading(false);
-    }
-}
-</script>
-
-<script>
-  // 가상 스크롤 구현
-function initVirtualScroll() {
-    const container = document.getElementById('character-list');
-    const bufferSize = 10; // 위아래 버퍼 아이템 수
-    
-    container.addEventListener('scroll', () => {
-        const { scrollTop, clientHeight, scrollHeight } = container;
-        const visibleStart = Math.floor(scrollTop / 300) - bufferSize;
-        const visibleEnd = Math.ceil((scrollTop + clientHeight) / 300) + bufferSize;
-        
-        // 화면에 보이는 아이템만 렌더링
-        renderVisibleItems(visibleStart, visibleEnd);
-    });
-}
-
-function renderVisibleItems(start, end) {
-    const visibleCharacters = characters.slice(
-        Math.max(0, start),
-        Math.min(characters.length, end)
-    );
-    // ... visibleCharacters만 렌더링 ...
-}
-</script>
-
-<script>
-  // Intersection Observer로 이미지 로딩
-function initLazyLoad() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                observer.unobserve(img);
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.card-image[data-src]').forEach(img => {
-        observer.observe(img);
-    });
-}
-
-// 이미지 태그 수정
-`<img data-src="${character.image}" class="card-image" alt="${character.name}">`
-</script>
 
 </body>
 </html>
