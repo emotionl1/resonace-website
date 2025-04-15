@@ -742,28 +742,6 @@
 </body>
 </html>
 
-<!-- HTML에 추가 -->
-<div id="loading-indicator" style="display: none; text-align: center; padding: 20px;">
-    <div class="spinner"></div>
-    <p>캐릭터 데이터를 불러오는 중...</p>
-</div>
-
-<style>
-    .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border-left-color: #09f;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 10px;
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-</style>
-
       
 
 
@@ -950,44 +928,33 @@
 let characters = [];
 
 // 데이터 불러오기 함수
-// character-readonly.html 파일 내 기존 loadData 함수를 이렇게 수정
 async function loadData() {
     try {
         // 1. JSON 파일 불러오기
         const response = await fetch('character_data.json');
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`데이터 불러오기 실패: ${response.status}`);
         }
         
-        // 2. 전체 데이터 한 번에 받기 (2MB 이하 권장)
-        const fullData = await response.json();
+        // 2. JSON 파싱
+        const data = await response.json();
         
-        // 3. 데이터 분할 처리
-        const chunkSize = 20; // 한 번에 처리할 아이템 수
-        for (let i = 0; i < fullData.characters.length; i += chunkSize) {
-            const chunk = fullData.characters.slice(i, i + chunkSize);
-            
-            // 4. 분할된 데이터 처리
-            processChunk(chunk);
-            
-            // 5. UI 업데이트를 위해 잠시 대기 (과도한 렌더링 방지)
-            await new Promise(resolve => setTimeout(resolve, 100));
+        // 3. 데이터 유효성 검사
+        if (!data.characters || !Array.isArray(data.characters)) {
+            throw new Error('잘못된 데이터 형식');
         }
+        
+        // 4. 데이터 저장
+        characters = data.characters;
+        
+        // 5. 캐릭터 목록 렌더링
+        renderCharacterList();
         
     } catch (error) {
-        console.error('데이터 로드 중 에러 발생:', error);
-        showError(`데이터 불러오기 실패: ${error.message}`);
+        console.error('에러 발생:', error);
+        showError(`데이터를 불러올 수 없습니다: ${error.message}`);
     }
-}
-
-// 새로 추가할 함수
-function processChunk(chunk) {
-    // 분할된 데이터를 characters 배열에 추가
-    characters = [...characters, ...chunk];
-    
-    // UI 업데이트
-    renderCharacterList();
 }
 
 // 오류 표시 함수
@@ -1076,47 +1043,6 @@ function escapeHtml(unsafe) {
 // 페이지 로드 시 데이터 불러오기
 document.addEventListener('DOMContentLoaded', loadData);
 </script>
-
-
-<script>
-  function renderCharacterList() {
-    const container = document.getElementById('character-list');
-    
-    // 기존에 렌더링된 캐릭터 ID 추적
-    const renderedIds = new Set(
-        Array.from(container.children).map(el => el.dataset.id)
-    );
-    
-    // 새로 추가될 캐릭터만 필터링
-    const newCharacters = characters.filter(
-        char => !renderedIds.has(char.id)
-    );
-    
-    // 새로운 캐릭터 카드 생성 및 추가
-    newCharacters.forEach(character => {
-        const card = document.createElement('div');
-        card.className = 'character-card';
-        card.dataset.id = character.id;
-        card.innerHTML = `
-            ${character.image ? 
-                `<img src="${character.image}" class="card-image" alt="${character.name}">` : 
-                '<div class="no-image">이미지 없음</div>'
-            }
-            <div class="card-body">
-                <h3 class="card-title">${escapeHtml(character.name)}</h3>
-                <div class="card-meta">
-                    ${escapeHtml(getRaceName(character.race))} • 
-                    ${escapeHtml(getGenderName(character.gender))}
-                </div>
-                <p class="card-desc">${escapeHtml(character.traits?.[0] || '등록된 정보 없음')}</p>
-            </div>
-        `;
-        card.addEventListener('click', () => showCharacterDetail(character.id));
-        container.appendChild(card);
-    });
-}
-</script>
-
 
 </body>
 </html>
